@@ -1,0 +1,58 @@
+# Disk Cleaner Free
+
+A native macOS 26 disk space analyzer written in SwiftUI, with a Liquid Glass interface. It's a clean-room
+recreation of the *workflow* of DaisyDisk (scan → interactive sunburst map → collect → delete). No code,
+artwork, strings or branding were taken from DaisyDisk.
+
+## Features
+
+- **Disks & folders sidebar**: every mounted volume with a capacity bar, plus starred favorites and recently
+  scanned folders. Drop a folder onto the window or the Dock icon to scan it. Mount and unmount events are picked up live.
+- **Overview**: a capacity donut (used / purgeable / free), Full Disk Access status and local APFS snapshots.
+- **Fast multi-threaded scanner**: the top two directory levels are split into independent `fts` jobs that run on all
+  cores. It measures allocated size and counts hard links once. On the Documents folder it was about 2× faster than `du`
+  and matched its total to the kilobyte.
+- **Startup disk aware**: it scans the data volume, attaches the sealed system volume as its own node so firmlinked folders
+  aren't double-counted, and reports **purgeable** and **hidden** space that no file accounts for.
+- **Interactive sunburst map**: hover to inspect, click to zoom in, click the center or press Esc to go up, use
+  back/forward history (⌘[ / ⌘]) and a breadcrumb path bar. Colors match between the map and the contents list.
+- **Contents inspector**: sorted list with size bars and percentages, and "smaller objects" grouping you can expand.
+- **Collector**: drag items from the map or list (or from Finder) to the bottom bar, review them, then move them
+  to the Trash or delete them immediately (set this in Settings).
+- **Scan as Administrator**: relaunches the app's own binary as root through the standard macOS password prompt,
+  and streams progress back. It reveals folders owned by the system and other users.
+- Quick Look (Space), Show in Finder, Copy Path, Open, CSV export, multiple scans running in parallel, and warnings
+  when you quit with a scan running or items collected.
+
+## Build
+
+Needs only the Xcode Command Line Tools (Swift 6.2, macOS 26 SDK):
+
+```bash
+./scripts/build_app.sh
+```
+
+This produces `build/Disk Cleaner Free.app` (ad-hoc signed). For development, use `swift build && .build/debug/DiskCleanerFree`.
+
+For layout checks, two launch arguments open the window at a given size and scan a folder right away:
+
+```bash
+open "build/Disk Cleaner Free.app" --args -WindowSize 780x560 -ScanPath /Applications
+```
+
+The window adapts as it narrows: below 900 px the sidebar folds away (and returns when there's room), and below
+600 px of detail width the contents list hides, so the map always has space.
+
+Note: macOS ties Full Disk Access to the code signature. With ad-hoc signing you may need to re-grant it after
+each rebuild (System Settings › Privacy & Security › Full Disk Access).
+
+## Layout
+
+```
+Sources/DiskCleanerFree/
+  App/       entry point, menu commands, Settings
+  Engine/    ScanEngine (parallel fts walker), AdminScan (root helper + tree codec)
+  Model/     FileNode tree, ScanSession (scan/navigation/collector), AppModel, volumes
+  Views/     sidebar, overview, scanning, report, sunburst, list, collector
+scripts/     build_app.sh, make_icon.swift
+```
