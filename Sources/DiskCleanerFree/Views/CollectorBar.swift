@@ -61,13 +61,15 @@ struct CollectorBar: View {
                 HStack(spacing: 5) {
                     Image(systemName: session.collected.isEmpty ? "tray" : "tray.full.fill")
                     Image(systemName: "chevron.up")
-                        .font(.caption.weight(.bold))
+                        .font(.footnote.weight(.bold))
                         .rotationEffect(.degrees(isExpanded ? 180 : 0))
                 }
+                .font(.title3)
                 .foregroundStyle(.red)
-                .padding(.horizontal, 4)
+                .frame(minWidth: 44, minHeight: 32)
+                .contentShape(Rectangle())
             }
-            .buttonStyle(.glass)
+            .buttonStyle(.plain)
             .fixedSize()
             .help(isExpanded ? "Close the list of collected items" : "Review everything collected for deletion")
 
@@ -76,22 +78,7 @@ struct CollectorBar: View {
                     .foregroundStyle(Color.red.opacity(0.85))
                 Spacer()
             } else {
-                if isExpanded {
-                    Text("Review the items above before deleting")
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                    Spacer(minLength: 0)
-                } else {
-                    ScrollView(.horizontal) {
-                        HStack(spacing: 6) {
-                            ForEach(session.collected) { node in
-                                CollectedChip(node: node, session: session, onQuickLook: onQuickLook)
-                            }
-                        }
-                        .padding(.vertical, 2)
-                    }
-                    .scrollIndicators(.never)
-                }
+                Spacer(minLength: 0)
 
                 VStack(alignment: .trailing, spacing: 0) {
                     Text(Format.bytes(session.collectedSize))
@@ -106,9 +93,11 @@ struct CollectorBar: View {
                 if session.isDeleting {
                     ProgressView().controlSize(.small)
                 } else {
-                    Button("Clear", systemImage: "xmark") { session.clearCollector() }
+                    Button("Clear", systemImage: "xmark.circle.fill") { session.clearCollector() }
                         .labelStyle(.iconOnly)
-                        .buttonStyle(.glass)
+                        .buttonStyle(.plain)
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
                         .help("Remove everything from the Collector")
                     Button(role: .destructive) {
                         if confirmDelete { confirming = true } else { delete() }
@@ -228,36 +217,6 @@ private struct CollectedRow: View {
                 session.navigate(to: parent)
                 session.selected = node
             }
-        }
-        .contextMenu { NodeMenu(node: node, session: session, onQuickLook: onQuickLook) }
-        .help(node.path)
-    }
-}
-
-private struct CollectedChip: View {
-    let node: FileNode
-    let session: ScanSession
-    var onQuickLook: (FileNode) -> Void
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Image(nsImage: IconCache.icon(for: node)).resizable().frame(width: 18, height: 18)
-            Text(node.name).lineLimit(1).truncationMode(.middle).frame(maxWidth: 160, alignment: .leading)
-            Text(Format.bytes(node.size)).foregroundStyle(.secondary).monospacedDigit()
-            Button {
-                session.uncollect(node)
-            } label: {
-                Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
-            }
-            .buttonStyle(.plain)
-        }
-        .font(.callout)
-        .padding(.leading, 8)
-        .padding(.trailing, 6)
-        .padding(.vertical, 5)
-        .background(Capsule().fill(Color.primary.opacity(0.07)))
-        .onHover { inside in
-            if inside { session.hovered = node } else if session.hovered === node { session.hovered = nil }
         }
         .contextMenu { NodeMenu(node: node, session: session, onQuickLook: onQuickLook) }
         .help(node.path)
