@@ -27,12 +27,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 
-    /// `-WindowSize 820x560` opens the window at that size and `-ScanPath <folder>` scans a folder
-    /// right away (handy for layout checks).
+    /// Launch arguments for layout checks: `-WindowSize 820x560` opens the window at that size,
+    /// `-ScanPath <folder>` scans a folder right away, and `-CollectPaths a,b` puts those items in the
+    /// Collector once the scan is done.
     func applicationDidFinishLaunching(_ notification: Notification) {
-        if let path = UserDefaults.standard.string(forKey: "ScanPath") {
+        let defaults = UserDefaults.standard
+        if let path = defaults.string(forKey: "ScanPath") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 MainActor.assumeIsolated { self.model?.open(URL(fileURLWithPath: path)) }
+            }
+        }
+        if let paths = defaults.string(forKey: "CollectPaths") {
+            let urls = paths.split(separator: ",").map { URL(fileURLWithPath: String($0)) }
+            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { timer in
+                MainActor.assumeIsolated {
+                    guard let session = self.model?.sessions.values.first(where: { $0.state == .done }) else { return }
+                    session.collect(urls: urls)
+                    timer.invalidate()
+                }
             }
         }
         let parts = (UserDefaults.standard.string(forKey: "WindowSize") ?? "").split(separator: "x").compactMap { Double($0) }

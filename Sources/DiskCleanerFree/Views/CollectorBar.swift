@@ -13,6 +13,8 @@ struct CollectorBar: View {
     @State private var isTargeted = false
     @State private var confirming = false
     @State private var isExpanded = false
+    @State private var isHoveringHandle = false
+    @State private var isHoveringClear = false
 
     private let shape = RoundedRectangle(cornerRadius: 22, style: .continuous)
 
@@ -28,6 +30,7 @@ struct CollectorBar: View {
         }
         // A solid backdrop keeps the open list readable over the colorful map.
         .background(shape.fill(Color(nsColor: .windowBackgroundColor).opacity(isExpanded ? 0.8 : 0)))
+        .clipShape(shape)
         // Red at all times so the deletion area stands out; stronger while dragging over it or holding items.
         .glassEffect(.regular.tint(Color.red.opacity(isTargeted ? 0.4 : session.collected.isEmpty ? 0.14 : 0.24)),
                      in: shape)
@@ -54,67 +57,93 @@ struct CollectorBar: View {
     }
 
     private var barRow: some View {
-        HStack(spacing: 12) {
-            Button {
-                withAnimation(.spring(response: 0.38, dampingFraction: 0.86)) { isExpanded.toggle() }
-            } label: {
-                HStack(spacing: 5) {
-                    Image(systemName: session.collected.isEmpty ? "tray" : "tray.full.fill")
-                    Image(systemName: "chevron.up")
-                        .font(.footnote.weight(.bold))
-                        .rotationEffect(.degrees(isExpanded ? 180 : 0))
-                }
-                .font(.title3)
-                .foregroundStyle(.red)
-                .frame(minWidth: 44, minHeight: 32)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .fixedSize()
-            .help(isExpanded ? "Close the list of collected items" : "Review everything collected for deletion")
+        HStack(spacing: 10) {
+            drawerHandle
 
             if session.collected.isEmpty {
                 Text(isTargeted ? "Drop to collect" : "Drag files and folders here to collect them for deletion")
                     .foregroundStyle(Color.red.opacity(0.85))
-                Spacer()
-            } else {
+                    .lineLimit(2)
                 Spacer(minLength: 0)
-
-                VStack(alignment: .trailing, spacing: 0) {
-                    Text(Format.bytes(session.collectedSize))
-                        .font(.headline)
-                        .monospacedDigit()
-                    Text("\(session.collected.count) collected")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .fixedSize()
-
+            } else {
+                Spacer(minLength: 8)
                 if session.isDeleting {
                     ProgressView().controlSize(.small)
+                    Text(moveToTrash ? "Moving to Trash…" : "Deleting…").foregroundStyle(.secondary)
                 } else {
-                    Button("Clear", systemImage: "xmark.circle.fill") { session.clearCollector() }
-                        .labelStyle(.iconOnly)
-                        .buttonStyle(.plain)
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                        .help("Remove everything from the Collector")
+                    Button {
+                        session.clearCollector()
+                    } label: {
+                        Label("Clear", systemImage: "xmark")
+                            .font(.callout.weight(.medium))
+                            .padding(.horizontal, 14)
+                            .frame(height: 30)
+                            .background(Capsule().fill(Color.primary.opacity(isHoveringClear ? 0.14 : 0.08)))
+                            .overlay(Capsule().strokeBorder(Color.primary.opacity(0.12)))
+                            .contentShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .onHover { isHoveringClear = $0 }
+                    .fixedSize()
+                    .help("Remove everything from the Collector without deleting it")
+
                     Button(role: .destructive) {
                         if confirmDelete { confirming = true } else { delete() }
                     } label: {
                         Label(moveToTrash ? "Move to Trash" : "Delete", systemImage: "trash")
-                            .padding(.horizontal, 4)
+                            .font(.callout.weight(.semibold))
+                            .padding(.horizontal, 6)
                     }
                     .buttonStyle(.glassProminent)
+                    .controlSize(.large)
                     .tint(.red)
                     .fixedSize()
                     .keyboardShortcut(.delete, modifiers: .command)
                 }
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .frame(minHeight: 56)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 9)
+        .frame(minHeight: 58)
+    }
+
+    /// Tray, total and arrow in one pill; clicking anywhere on it opens or closes the review list.
+    private var drawerHandle: some View {
+        let isEmpty = session.collected.isEmpty
+        let count = session.collected.count
+        return Button {
+            withAnimation(.spring(response: 0.38, dampingFraction: 0.86)) { isExpanded.toggle() }
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: isEmpty ? "tray" : "tray.full.fill")
+                    .font(.title3)
+                    .foregroundStyle(.red)
+                if !isEmpty {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(Format.bytes(session.collectedSize))
+                            .font(.headline)
+                            .monospacedDigit()
+                        Text("\(Format.count(count)) item\(count == 1 ? "" : "s") collected")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .fixedSize()
+                }
+                Image(systemName: "chevron.up")
+                    .font(.footnote.weight(.bold))
+                    .foregroundStyle(.red)
+                    .rotationEffect(.degrees(isExpanded ? 180 : 0))
+            }
+            .padding(.leading, 12)
+            .padding(.trailing, 14)
+            .frame(minHeight: 40)
+            .background(Capsule().fill(Color.red.opacity(isHoveringHandle ? 0.2 : isEmpty ? 0 : 0.1)))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .fixedSize()
+        .onHover { isHoveringHandle = $0 }
+        .help(isExpanded ? "Close the list of collected items" : "Review everything collected for deletion")
     }
 
     private var confirmTitle: String {

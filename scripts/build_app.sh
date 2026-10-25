@@ -6,16 +6,20 @@ ROOT="${0:A:h:h}"
 APP_NAME="Disk Cleaner Free"
 EXEC="DiskCleanerFree"
 BUNDLE_ID="com.diskcleanerfree.app"
-VERSION="1.0"
+VERSION="${VERSION:-1.0}"
 BUILD="$ROOT/build"
 APP="$BUILD/$APP_NAME.app"
 
 cd "$ROOT"
+# Universal binary: build each architecture, then merge (multi-arch builds need full Xcode).
 swift build -c release --arch arm64
+swift build -c release --arch x86_64
 
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp ".build/arm64-apple-macosx/release/$EXEC" "$APP/Contents/MacOS/$EXEC"
+lipo -create -output "$APP/Contents/MacOS/$EXEC" \
+  ".build/arm64-apple-macosx/release/$EXEC" \
+  ".build/x86_64-apple-macosx/release/$EXEC"
 
 # App icon
 ICONSET="$BUILD/AppIcon.iconset"
@@ -43,6 +47,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>LSMinimumSystemVersion</key><string>26.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
   <key>NSHighResolutionCapable</key><true/>
+  <key>NSHumanReadableCopyright</key><string>© 2026 Matija Lekovic</string>
   <key>NSSupportsAutomaticTermination</key><false/>
   <key>CFBundleDocumentTypes</key>
   <array>

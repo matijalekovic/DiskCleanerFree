@@ -34,10 +34,23 @@ Needs only the Xcode Command Line Tools (Swift 6.2, macOS 26 SDK):
 
 This produces `build/Disk Cleaner Free.app` (ad-hoc signed). For development, use `swift build && .build/debug/DiskCleanerFree`.
 
-For layout checks, two launch arguments open the window at a given size and scan a folder right away:
+To make a shareable installer (universal Apple Silicon + Intel, drag-to-Applications disk image):
 
 ```bash
-open "build/Disk Cleaner Free.app" --args -WindowSize 780x560 -ScanPath /Applications
+./scripts/make_dmg.sh
+```
+
+This writes `build/DiskCleanerFree-1.0.dmg` (set `VERSION=1.1` to change the number). The app is ad-hoc signed,
+not signed with an Apple Developer ID, so on another Mac Gatekeeper blocks the first launch. The DMG includes a
+"How to open" note: System Settings › Privacy & Security › **Open Anyway**, once. Signing with a Developer ID and
+notarizing removes that step.
+
+For layout checks, launch arguments open the window at a given size, scan a folder right away, and
+optionally put items in the Collector (nothing is deleted):
+
+```bash
+open "build/Disk Cleaner Free.app" --args -WindowSize 780x560 -ScanPath /Applications \
+  -CollectPaths "/Applications/Claude.app,/Applications/Discord.app"
 ```
 
 The window adapts as it narrows: below 900 px the sidebar folds away (and returns when there's room), and below
