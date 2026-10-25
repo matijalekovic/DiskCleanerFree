@@ -114,11 +114,9 @@ struct AppCommands: Commands {
                 .keyboardShortcut(.upArrow, modifiers: [.command, .shift])
                 .disabled(session?.canGoUp != true)
             Divider()
-            Button("Move Selection to Collector") {
-                if let node = session?.selected { session?.collect(node) }
-            }
-            .keyboardShortcut("k")
-            .disabled(session?.selected?.isRealItem != true)
+            Button("Move Selection to Collector") { session?.collectSelection() }
+                .keyboardShortcut("k")
+                .disabled(session?.selectedNodes.contains(where: \.isRealItem) != true)
         }
     }
 }

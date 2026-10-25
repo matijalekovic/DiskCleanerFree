@@ -244,7 +244,7 @@ private struct CollectedRow: View {
         .onTapGesture {
             if let parent = node.parent, parent.isAlive {
                 session.navigate(to: parent)
-                session.selected = node
+                session.select(node)
             }
         }
         .contextMenu { NodeMenu(node: node, session: session, onQuickLook: onQuickLook) }

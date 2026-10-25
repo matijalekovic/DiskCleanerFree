@@ -18,7 +18,9 @@ final class ScanSession: Identifiable {
     private(set) var root: FileNode?
     private(set) var focus: FileNode?
     var hovered: FileNode?
-    var selected: FileNode?
+    /// Items selected in the contents list (or by clicking a file on the map), keyed by identity.
+    private(set) var selection: [ObjectIdentifier: FileNode] = [:]
+    @ObservationIgnored private var selectionAnchor: FileNode?
     private(set) var backStack: [FileNode] = []
     private(set) var forwardStack: [FileNode] = []
     private(set) var collected: [FileNode] = []
@@ -41,6 +43,7 @@ final class ScanSession: Identifiable {
     var lastDeleteMovedToTrash = true
     var deletionFailures: [String] = []
 
+    @ObservationIgnored private var collectedWithinCache: [ObjectIdentifier: Int64]?
     @ObservationIgnored private var progress: ScanProgress?
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private var startedAt = Date()
@@ -123,10 +126,11 @@ final class ScanSession: Identifiable {
             root = tree
             focus = tree
             hovered = nil
-            selected = nil
+            clearSelection()
             backStack = []
             forwardStack = []
             collected = []
+            collectedWithinCache = nil
             scannedAsAdmin = asAdmin
             revision += 1
             state = .done
@@ -161,7 +165,7 @@ final class ScanSession: Identifiable {
         forwardStack.removeAll()
         focus = node
         hovered = nil
-        selected = nil
+        clearSelection()
     }
 
     func goBack() {
@@ -176,6 +180,52 @@ final class ScanSession: Identifiable {
         if let focus { backStack.append(focus) }
         focus = next
         hovered = nil
+    }
+
+    // MARK: Selection
+
+    /// The most recently clicked selected item.
+    var selected: FileNode? {
+        if let anchor = selectionAnchor, selection[anchor.id] != nil { return anchor }
+        return selection.values.first
+    }
+
+    var selectedNodes: [FileNode] { Array(selection.values) }
+
+    func isSelected(_ node: FileNode) -> Bool { selection[node.id] != nil }
+
+    /// Plain click: select just this item.
+    func select(_ node: FileNode?) {
+        selection = node.map { [$0.id: $0] } ?? [:]
+        selectionAnchor = node
+    }
+
+    /// Command-click: add or remove one item.
+    func toggleSelection(_ node: FileNode) {
+        if selection.removeValue(forKey: node.id) == nil { selection[node.id] = node }
+        selectionAnchor = node
+    }
+
+    /// Shift-click: select everything between the last clicked item and this one, in list order.
+    func selectRange(to node: FileNode, in ordered: [FileNode]) {
+        guard let anchor = selectionAnchor,
+              let a = ordered.firstIndex(where: { $0 === anchor }),
+              let b = ordered.firstIndex(where: { $0 === node })
+        else { return select(node) }
+        selection = Dictionary(uniqueKeysWithValues: ordered[min(a, b)...max(a, b)].map { ($0.id, $0) })
+    }
+
+    /// Rubber-band selection: replaces the selection, or adds to `base` when Command is held.
+    func setSelection(_ nodes: [FileNode], adding base: [ObjectIdentifier: FileNode] = [:]) {
+        var result = base
+        for node in nodes { result[node.id] = node }
+        selection = result
+        if let first = nodes.first { selectionAnchor = first }
+    }
+
+    func clearSelection() {
+        selection = [:]
+        selectionAnchor = nil
     }
 
     func goUp() {
@@ -221,20 +271,51 @@ final class ScanSession: Identifiable {
         guard node.isRealItem, !isCollected(node) else { return }
         collected.removeAll { $0.isDescendant(of: node) }
         collected.append(node)
+        collectedWithinCache = nil
     }
 
+    /// Collects dropped items. Dropping one item of a multi-selection collects the whole selection,
+    /// since a drag carries only the item under the pointer.
     func collect(urls: [URL]) {
-        for url in urls {
-            if let node = node(atPath: url.path) { collect(node) }
-        }
+        let nodes = urls.compactMap { node(atPath: $0.path) }
+        if nodes.contains(where: isSelected) { collectSelection() }
+        for node in nodes { collect(node) }
+    }
+
+    func collectSelection() {
+        for node in selection.values where node.isRealItem { collect(node) }
     }
 
     func uncollect(_ node: FileNode) {
         collected.removeAll { $0 === node }
+        collectedWithinCache = nil
     }
 
     func clearCollector() {
         collected.removeAll()
+        collectedWithinCache = nil
+    }
+
+    /// Bytes of collected items inside `node` (including `node` itself when it is collected).
+    func collectedBytes(in node: FileNode) -> Int64 {
+        let items = collected  // registers the observation dependency
+        if collectedWithinCache == nil {
+            var totals: [ObjectIdentifier: Int64] = [:]
+            for item in items {
+                var current: FileNode? = item
+                while let n = current {
+                    totals[n.id, default: 0] += item.size
+                    current = n.parent
+                }
+            }
+            collectedWithinCache = totals
+        }
+        return collectedWithinCache?[node.id] ?? 0
+    }
+
+    /// Size of `node` once everything collected inside it is deleted.
+    func remainingSize(of node: FileNode) -> Int64 {
+        node.size - collectedBytes(in: node)
     }
 
     /// Moves collected items to the Trash (or removes them outright) and prunes them from the tree.
@@ -261,11 +342,12 @@ final class ScanSession: Identifiable {
             }
         }
         collected.removeAll { $0.isDeleted }
+        collectedWithinCache = nil
         backStack.removeAll { !$0.isAlive }
         forwardStack.removeAll { !$0.isAlive }
         while let focus, !focus.isAlive, let parent = focus.parent { self.focus = parent }
         hovered = nil
-        selected = nil
+        clearSelection()
         if !moveToTrash {
             freeSpace += freed
             freeAndPurgeable += freed

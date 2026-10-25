@@ -91,8 +91,11 @@ struct ReportView: View {
 
     private var subtitle: String {
         guard let root = session.root else { return "" }
-        var parts = ["\(Format.bytes(root.size)) used", "\(Format.count(root.fileCount)) files"]
-        if session.source.isVolume { parts.insert("\(Format.bytes(session.freeSpace)) free", at: 1) }
+        // With items collected, show the disk as it will be after they're deleted.
+        let pending = session.collectedSize
+        var parts = ["\(Format.bytes(root.size - pending)) used", "\(Format.count(root.fileCount)) files"]
+        if session.source.isVolume { parts.insert("\(Format.bytes(session.freeSpace + pending)) free", at: 1) }
+        if pending > 0 { parts.append("after freeing \(Format.bytes(pending))") }
         if session.scannedAsAdmin { parts.append("Administrator") }
         return parts.joined(separator: " · ")
     }
@@ -195,7 +198,7 @@ private struct PathBar: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             if let focus = session.focus {
-                Text(Format.bytes(focus.size))
+                Text(Format.bytes(session.remainingSize(of: focus)))
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
                     .fixedSize()

@@ -66,13 +66,12 @@ struct SunburstView: View {
         if node.canNavigate {
             session.navigate(to: node)
         } else {
-            session.selected = node
+            session.select(node)
         }
     }
 
     private func draw(in context: inout GraphicsContext, geometry: RingGeometry) {
         let hovered = session.hovered
-        let selected = session.selected
         let even = FillStyle(eoFill: true)
         for segment in layout.segments {
             let path = geometry.path(depth: segment.depth, start: segment.start, end: segment.end)
@@ -101,7 +100,7 @@ struct SunburstView: View {
                     layer.stroke(stripes, with: .color(.white.opacity(0.16)), lineWidth: 2)
                 }
             }
-            if node === selected {
+            if session.isSelected(node) {
                 context.stroke(path, with: .color(.white), lineWidth: 2)
             }
         }
@@ -122,7 +121,8 @@ private struct CenterDisc: View {
         let _ = session.revision
         let node = session.hovered ?? session.focus
         let side = diameter * 0.70
-        let size = Format.steadyBytes(node?.size ?? 0)
+        let shown = node.map { session.isCollected($0) ? $0.size : session.remainingSize(of: $0) } ?? 0
+        let size = Format.steadyBytes(shown)
         VStack(spacing: 0) {
             Text(node?.name ?? "")
                 .font(.system(size: max(9, side * 0.12), weight: .medium))
@@ -174,7 +174,11 @@ struct NodeMenu: View {
                 }
             }
             Divider()
-            if session.collected.contains(where: { $0 === node }) {
+            if session.isSelected(node), session.selection.count > 1 {
+                Button("Move \(session.selection.count) Items to Collector", systemImage: "tray.and.arrow.down") {
+                    session.collectSelection()
+                }
+            } else if session.collected.contains(where: { $0 === node }) {
                 Button("Remove from Collector", systemImage: "tray.and.arrow.up") { session.uncollect(node) }
             } else if !session.isCollected(node) {
                 Button("Move to Collector", systemImage: "tray.and.arrow.down") { session.collect(node) }
