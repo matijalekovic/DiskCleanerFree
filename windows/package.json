@@ -37,9 +37,17 @@
             "x64",
             "arm64"
           ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ],
-      "icon": "resources/icon.png"
+      "icon": "resources/icon.png",
+      "artifactName": "DiskCleanerFree-${version}-Windows-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,
