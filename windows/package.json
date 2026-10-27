@@ -19,23 +19,27 @@
   "build": {
     "appId": "com.diskcleanerfree.app",
     "productName": "Disk Cleaner Free",
-    "copyright": "© 2026 Matija Lekovic",
+    "copyright": "\u00a9 2026 Matija Lekovic",
     "directories": {
       "output": "dist",
-      "buildResources": "build"
+      "buildResources": "resources"
     },
     "files": [
       "src/**/*",
-      "package.json"
+      "package.json",
+      "resources/icon.png"
     ],
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ],
-      "icon": "build/icon.png"
+      "icon": "resources/icon.png"
     },
     "nsis": {
       "oneClick": false,
@@ -47,7 +51,7 @@
     },
     "mac": {
       "target": "dmg",
-      "icon": "build/icon.png",
+      "icon": "resources/icon.png",
       "category": "public.app-category.utilities"
     }
   }

@@ -32,7 +32,7 @@ function createWindow() {
     titleBarStyle: isMac ? 'hiddenInset' : 'hidden',
     ...(isWindows ? { titleBarOverlay: themeColors(), backgroundMaterial: 'mica' } : {}),
     ...(isMac ? { vibrancy: 'sidebar', visualEffectState: 'active', trafficLightPosition: { x: 18, y: 18 } } : {}),
-    icon: path.join(__dirname, '..', 'build', 'icon.png'),
+    icon: path.join(__dirname, '..', 'resources', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
