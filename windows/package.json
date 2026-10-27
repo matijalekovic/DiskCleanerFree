@@ -1,0 +1,54 @@
+{
+  "name": "disk-cleaner-free",
+  "productName": "Disk Cleaner Free",
+  "version": "1.1.0",
+  "description": "See what takes up your disk space and clean it up",
+  "author": "Matija Lekovic",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win --publish never",
+    "dist:mac": "electron-builder --mac --publish never"
+  },
+  "devDependencies": {
+    "electron": "44.7.0",
+    "electron-builder": "26.17.0"
+  },
+  "build": {
+    "appId": "com.diskcleanerfree.app",
+    "productName": "Disk Cleaner Free",
+    "copyright": "© 2026 Matija Lekovic",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Disk Cleaner Free",
+      "artifactName": "DiskCleanerFree-${version}-Windows-Setup.${ext}"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "build/icon.png",
+      "category": "public.app-category.utilities"
+    }
+  }
+}

@@ -24,7 +24,23 @@ artwork, strings or branding were taken from DaisyDisk.
 - Quick Look (Space), Show in Finder, Copy Path, Open, CSV export, multiple scans running in parallel, and warnings
   when you quit with a scan running or items collected.
 
-## Build
+## Windows
+
+`windows/` holds the Windows version: an Electron app with the same layout and features (disk map, contents
+list with Explorer-style selection, Collector drawer, Clean Up for temp files and browser and developer caches).
+Items are moved to the Recycle Bin. It also runs on macOS, which is handy for development:
+
+```bash
+cd windows && npm install && npm start
+```
+
+The installer (x64 + ARM64) is built by GitHub Actions (`.github/workflows/windows.yml`) on Windows whenever a
+release is published, and attached to that release. To build it on a Windows PC instead: `npm run dist:win`.
+
+The installer isn't code-signed, so Windows SmartScreen may show "Windows protected your PC" on first run:
+click **More info › Run anyway**.
+
+## Build (macOS)
 
 Needs only the Xcode Command Line Tools (Swift 6.2, macOS 26 SDK):
 
