@@ -26,18 +26,21 @@ artwork, strings or branding were taken from DaisyDisk.
 
 ## Windows
 
-`windows/` holds the Windows version: an Electron app with the same layout and features (disk map, contents
-list with Explorer-style selection, Collector drawer, Clean Up for temp files and browser and developer caches).
-Items are moved to the Recycle Bin. It also runs on macOS, which is handy for development:
+`windows/` holds the Windows version, built with [Tauri](https://tauri.app): a Rust backend (multi-threaded
+scanner, Recycle Bin, dialogs) with the same interface as the Mac app in plain HTML/CSS/JS (`windows/ui/`). It
+uses the Edge WebView2 that ships with Windows 10/11, so the app is only a few MB. Same features: disk map,
+contents list with Explorer-style selection, Collector drawer, and Clean Up for temp files and browser and
+developer caches. It also runs on macOS, which is handy for development (needs Rust and Node):
 
 ```bash
-cd windows && npm install && npm start
+cd windows && npm install && npm run dev
 ```
 
-The installer (x64 + ARM64) is built by GitHub Actions (`.github/workflows/windows.yml`) on Windows whenever a
-release is published, and attached to that release. To build it on a Windows PC instead: `npm run dist:win`.
+GitHub Actions (`.github/workflows/windows.yml`) builds x64 and ARM64 installers plus single-file portable
+`.exe`s on Windows whenever a release is published, and attaches them to it. To build on a Windows PC instead:
+`npm run build`.
 
-The installer isn't code-signed, so Windows SmartScreen may show "Windows protected your PC" on first run:
+The app isn't code-signed, so Windows SmartScreen may show "Windows protected your PC" on first run:
 click **More info › Run anyway**.
 
 ## Build (macOS)

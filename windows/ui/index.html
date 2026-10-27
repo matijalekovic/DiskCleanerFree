@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Disk Cleaner Free</title>
   <link rel="stylesheet" href="styles.css">
@@ -10,7 +9,7 @@
 <body>
   <div class="app">
     <aside class="sidebar">
-      <div class="sidebar-header drag">
+      <div class="sidebar-header" data-tauri-drag-region>
         <button class="icon-button no-drag" id="toggleSidebar" title="Hide sidebar" data-icon="sidebar"></button>
       </div>
       <nav class="sources" id="sources"></nav>
@@ -19,9 +18,9 @@
       </div>
     </aside>
     <main class="content">
-      <header class="titlebar drag">
+      <header class="titlebar" data-tauri-drag-region>
         <button class="icon-button no-drag hidden" id="showSidebar" title="Show sidebar" data-icon="sidebar"></button>
-        <div class="title-block">
+        <div class="title-block" data-tauri-drag-region>
           <div class="title" id="title">Disk Cleaner Free</div>
           <div class="subtitle" id="subtitle"></div>
         </div>
@@ -31,6 +30,7 @@
     </main>
   </div>
   <div class="modal-backdrop hidden" id="modal"></div>
+  <script src="bridge.js"></script>
   <script src="icons.js"></script>
   <script src="format.js"></script>
   <script src="sunburst.js"></script>

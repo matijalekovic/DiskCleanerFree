@@ -51,12 +51,20 @@ body {
   user-select: none;
   cursor: default;
 }
-/* Mica shows through on Windows 11. */
-html.platform-win32 body { background: transparent; }
 button { font: inherit; color: inherit; }
 .hidden { display: none !important; }
-.drag { -webkit-app-region: drag; }
-.no-drag, .no-drag * { -webkit-app-region: no-drag; }
+/* Context menu (drawn in the page) */
+.menu {
+  position: fixed; z-index: 50; min-width: 210px; padding: 5px;
+  border-radius: 10px; background: var(--surface-strong); border: 1px solid var(--surface-border);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28); backdrop-filter: blur(30px) saturate(1.6);
+  font-size: 13px; animation: menu-in 0.12s ease-out;
+}
+.menu button { display: block; width: 100%; text-align: left; padding: 6px 12px; border: none; background: none; border-radius: 6px; color: var(--text); }
+.menu button:hover:not(:disabled) { background: var(--accent); color: white; }
+.menu button:disabled { opacity: 0.4; }
+.menu hr { border: none; height: 1px; background: var(--separator); margin: 4px 6px; }
+@keyframes menu-in { from { opacity: 0; transform: scale(0.97); } }
 .icon { flex: none; display: block; }
 .tabular { font-variant-numeric: tabular-nums; }
 
@@ -163,7 +171,6 @@ html.platform-darwin .sidebar-header { padding-left: 84px; }
 /* ---- Title bar */
 
 .content { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--content-bg); }
-html.platform-win32 .content { background: color-mix(in srgb, var(--content-bg) 82%, transparent); }
 .titlebar {
   height: 52px;
   flex: none;
@@ -310,7 +317,7 @@ html.platform-darwin .app.sidebar-hidden .titlebar { padding-left: 84px; }
 .collector-items { flex: 1; overflow-y: auto; padding: 0 8px 8px; }
 .collected-row { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 8px; }
 .collected-row:hover { background: var(--hover); }
-.collected-row img { width: 22px; height: 22px; flex: none; }
+.collected-row > .icon { color: var(--text-2); }
 .collected-row .main { flex: 1; min-width: 0; }
 .collected-row .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .collected-row .where { font-size: 11.5px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: rtl; text-align: left; }

@@ -1,0 +1,25 @@
+[package]
+name = "disk-cleaner-free"
+version = "1.1.0"
+description = "See what takes up your disk space and clean it up"
+authors = ["Matija Lekovic"]
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "=2.7.2", features = [] }
+
+[dependencies]
+tauri = { version = "=2.12.3", features = [] }
+tauri-plugin-dialog = "=2.8.2"
+tauri-plugin-opener = "=2.7.1"
+tauri-plugin-clipboard-manager = "=2.4.2"
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.154"
+sysinfo = { version = "=0.39.6", default-features = false, features = ["disk"] }
+trash = "=5.2.9"
+
+[profile.release]
+codegen-units = 1
+lto = true
+strip = true
+panic = "abort"

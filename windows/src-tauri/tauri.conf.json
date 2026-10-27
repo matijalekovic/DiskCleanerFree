@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Disk Cleaner Free",
+  "mainBinaryName": "Disk Cleaner Free",
+  "version": "1.1.0",
+  "identifier": "com.diskcleanerfree.desktop",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Disk Cleaner Free",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 760,
+        "minHeight": 540,
+        "center": true,
+        "dragDropEnabled": false,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "app"],
+    "publisher": "Matija Lekovic",
+    "copyright": "© 2026 Matija Lekovic",
+    "category": "Utility",
+    "shortDescription": "See what takes up your disk space and clean it up",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      },
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    }
+  }
+}

@@ -866,7 +866,7 @@ function renderCollector(session) {
       <header><h3>To be moved to the ${esc(state.info.bin)}</h3><span class="tabular">${Format.count(items.length)} items · ${Format.bytes(total)}</span></header>
       ${has ? `<div class="collector-items">${items.map((item) => `
         <div class="collected-row" data-id="${item.id}" title="${esc(item.path)}">
-          <img data-icon-path="${esc(item.path)}" alt="">
+          ${icon(item.kind === KIND.DIR || item.kind === KIND.RESTRICTED ? 'folder' : 'document', 20)}
           <div class="main"><div class="name">${esc(item.name)}</div><div class="where"><span dir="ltr">${esc(item.path.slice(0, Math.max(0, item.path.length - item.name.length - 1)))}</span></div></div>
           <span class="size tabular">${Format.bytes(item.size)}</span>
           <button class="icon-button" data-act="reveal" title="Show in ${esc(state.info.fileManager)}">${icon('reveal', 16)}</button>
@@ -899,9 +899,6 @@ function renderCollector(session) {
     row.querySelector('[data-act="remove"]').onclick = (e) => { e.stopPropagation(); uncollect(session, id); };
     row.onmouseenter = () => setHovered(session, id);
     row.onmouseleave = () => setHovered(session, null);
-  }
-  for (const img of collector.querySelectorAll('img[data-icon-path]')) {
-    api.fileIcon(img.dataset.iconPath).then((url) => { if (url) img.src = url; else img.remove(); });
   }
 }
 

@@ -6,61 +6,11 @@
   "author": "Matija Lekovic",
   "license": "UNLICENSED",
   "private": true,
-  "main": "src/main.js",
   "scripts": {
-    "start": "electron .",
-    "dist:win": "electron-builder --win --publish never",
-    "dist:mac": "electron-builder --mac --publish never"
+    "dev": "tauri dev",
+    "build": "tauri build"
   },
   "devDependencies": {
-    "electron": "44.7.0",
-    "electron-builder": "26.17.0"
-  },
-  "build": {
-    "appId": "com.diskcleanerfree.app",
-    "productName": "Disk Cleaner Free",
-    "copyright": "\u00a9 2026 Matija Lekovic",
-    "directories": {
-      "output": "dist",
-      "buildResources": "resources"
-    },
-    "files": [
-      "src/**/*",
-      "package.json",
-      "resources/icon.png"
-    ],
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        },
-        {
-          "target": "zip",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
-      ],
-      "icon": "resources/icon.png",
-      "artifactName": "DiskCleanerFree-${version}-Windows-${arch}.${ext}"
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "shortcutName": "Disk Cleaner Free",
-      "artifactName": "DiskCleanerFree-${version}-Windows-Setup.${ext}"
-    },
-    "mac": {
-      "target": "dmg",
-      "icon": "resources/icon.png",
-      "category": "public.app-category.utilities"
-    }
+    "@tauri-apps/cli": "2.12.2"
   }
 }
