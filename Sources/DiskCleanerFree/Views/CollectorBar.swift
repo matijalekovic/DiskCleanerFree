@@ -181,7 +181,7 @@ private struct CollectedList: View {
                 ContentUnavailableView("Nothing collected yet",
                                        systemImage: "tray",
                                        description: Text("Drag files and folders from the map or the list onto this bar."))
-                    .frame(maxHeight: .infinity)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
                     LazyVStack(spacing: 0) {

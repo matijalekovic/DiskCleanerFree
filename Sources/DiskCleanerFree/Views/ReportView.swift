@@ -17,6 +17,7 @@ struct ReportView: View {
     @State private var quickLookURL: URL?
     @State private var cache = LayoutCache()
     @State private var mapHeight: CGFloat = 600
+    @State private var showCleanup = false
 
     /// The list needs room next to the map; in a narrow window the map gets all the space.
     private var listFits: Bool { detailWidth >= 600 }
@@ -41,6 +42,7 @@ struct ReportView: View {
         .navigationTitle(session.source.name)
         .navigationSubtitle(subtitle)
         .quickLookPreview($quickLookURL)
+        .sheet(isPresented: $showCleanup) { CleanupSheet(session: session) }
         .focusedSceneValue(\.scanSession, session)
         .onKeyPress(.space) {
             guard let node = session.selected ?? session.hovered, node.isRealItem else { return .ignored }
@@ -54,13 +56,30 @@ struct ReportView: View {
         }
     }
 
+    /// Sits beside the path bar so it always stays over the map, whatever the window width.
+    private var cleanUpButton: some View {
+        let available = CacheCleanup.isAvailable(in: session)
+        return Button { showCleanup = true } label: {
+            Label("Clean Up", systemImage: "sparkles")
+        }
+        .buttonStyle(.glass)
+        .controlSize(.large)
+        .fixedSize()
+        .disabled(!available)
+        .help(available ? "Find caches and logs that are safe to remove"
+                        : "Scan your startup disk or home folder to clean up caches")
+    }
+
     private func mapPane(_ layout: SunburstLayout) -> some View {
         SunburstView(session: session, layout: layout, onQuickLook: quickLook)
             .padding(.horizontal, 24)
             .padding(.top, 8)
             .safeAreaInset(edge: .top, spacing: 0) {
                 VStack(spacing: 8) {
-                    PathBar(session: session)
+                    HStack(spacing: 10) {
+                        PathBar(session: session)
+                        cleanUpButton
+                    }
                     if session.restrictedCount > 0, !model.hasFullDiskAccess || !session.scannedAsAdmin {
                         RestrictedBanner(session: session)
                     }
